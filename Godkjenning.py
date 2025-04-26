@@ -39,7 +39,6 @@ class AuthSystem:
         otp = '{:06d}'.format(random.randint(0, 999999))
         user.pending_otp = otp
         user.otp_expiry = time.time() + self.otp_ttl
-        # Simulate sending OTP
         print(f"[OTP SENT] Code for '{user.username}': {otp} (valid {self.otp_ttl//60} min)")
 
     def authenticate_user(self, username: str, password: str) -> bool:
