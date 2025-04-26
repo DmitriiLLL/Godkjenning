@@ -5,24 +5,22 @@ import time
 import random
 
 class User:
-    """Represents a single user with password hash, 2FA status and OTP metadata."""
     def __init__(self, username: str, salt: bytes, password_hash: bytes, two_factor: bool = True):
         self.username = username
         self.salt = salt
         self.password_hash = password_hash
         self.two_factor = two_factor
         self.failed_attempts = 0
-        self.locked_until = 0  # timestamp until which account is locked
+        self.locked_until = 0  
         self.pending_otp = None
         self.otp_expiry = 0
 
 class AuthSystem:
-    """Two-factor authentication system using OTP codes."""
     def __init__(self, lockout_threshold=3, lockout_duration=60, otp_ttl=300):
-        self.users = {}  # username -> User
+        self.users = {}  
         self.lockout_threshold = lockout_threshold
         self.lockout_duration = lockout_duration
-        self.otp_ttl = otp_ttl  # OTP time-to-live in seconds
+        self.otp_ttl = otp_ttl  
 
     def _hash_password(self, password: str, salt: bytes) -> bytes:
         return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100_000)
@@ -53,7 +51,6 @@ class AuthSystem:
         if now < user.locked_until:
             print(f"[WARN] Account '{username}' is locked until {time.ctime(user.locked_until)}.")
             return False
-        # Verify password
         attempted_hash = self._hash_password(password, user.salt)
         if not hmac.compare_digest(attempted_hash, user.password_hash):
             user.failed_attempts += 1
@@ -62,10 +59,8 @@ class AuthSystem:
                 user.locked_until = now + self.lockout_duration
                 print(f"[WARN] Account '{username}' locked until {time.ctime(user.locked_until)}.")
             return False
-        # Password correct
         user.failed_attempts = 0
         print(f"[INFO] Password verified for '{username}'.")
-        # Handle 2FA
         if user.two_factor:
             self._generate_otp(user)
             entered = input("Enter OTP: ").strip()
@@ -85,10 +80,6 @@ class AuthSystem:
             print(f"[INFO] Password changed successfully for '{username}'.")
             return True
         return False
-
-# ---------------------------------------
-# Interactive CLI
-# ---------------------------------------
 
 def main():
     auth = AuthSystem(lockout_threshold=3, lockout_duration=60, otp_ttl=300)
